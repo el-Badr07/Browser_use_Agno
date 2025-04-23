@@ -92,8 +92,8 @@ async def main():
         # --- Restore Original Task ---
         await agent.aprint_response("""
             1. Visit https://scholar.google.com/
-            2. Search for "tawfik masrour"
-            3. Click on the profile link for Tawfik Masrour.
+            2. Search for "yann lecun" in the search bar.
+            3. Click on the profile link for Yann LeCun.
             4. Extract the names of the first 5 papers listed on their profile.
             5. Extract the names of the first 5 co-authors listed.
             6. Summarize the information found on the profile (e.g., affiliation, research areas if available).
