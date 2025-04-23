@@ -235,9 +235,19 @@ class BrowserTool(Toolkit):
                 if download_path:
                     output += f" File downloaded to {download_path}"
                 logger.info(output)
-                # Retrieve updated state
-                state_str = await self.get_current_state()
-                return f"{output}\nBrowser state after click:\n{state_str}"
+                
+                try:
+                    # Get the state with the required parameter
+                    state = await context.get_state(cache_clickable_elements_hashes=True)
+                    state_info = {
+                        "url": state.url,
+                        "title": state.title,
+                        "interactive_elements": state.element_tree.clickable_elements_to_string()[:500] + "..."
+                    }
+                    return f"{output}\nBrowser state after click: {json.dumps(state_info, indent=2)}"
+                except Exception as inner_e:
+                    logger.warning(f"Could not get state after click: {inner_e}")
+                    return output
             except Exception as e:
                 logger.error(f"Failed to click element at index {index}: {e}", exc_info=True)
                 return f"Error clicking element at index {index}: {str(e)}"
@@ -260,13 +270,14 @@ class BrowserTool(Toolkit):
                 output = f"Input text '{text}' into element at index {index}."
                 logger.info(output)
                 try:
-                    # Get the state and return it - don't use self.get_current_state() as it creates circular calls
-                    state = await context.get_state()
+                    # Get the state with the required parameter
+                    state = await context.get_state(cache_clickable_elements_hashes=True)
                     state_info = {
                         "url": state.url,
-                        "title": state.title
+                        "title": state.title,
+                        "interactive_elements": state.element_tree.clickable_elements_to_string()[:500] + "..." 
                     }
-                    return f"{output} Current state: URL={state.url}, title={state.title}"
+                    return f"{output}\nBrowser state after input: {json.dumps(state_info, indent=2)}"
                 except Exception as inner_e:
                     logger.warning(f"Could not get state after input: {inner_e}")
                     return output
