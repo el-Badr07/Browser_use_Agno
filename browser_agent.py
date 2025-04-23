@@ -2,7 +2,7 @@ import asyncio
 from os import getenv
 
 from agno.agent import Agent
-from agno.tools.browser import BrowserTool # Use the updated tool from agno
+from agno.tools.browser import BrowserTool  # Use the updated tool from agno
 from agno.models.groq import Groq
 
 # Browserbase Configuration
@@ -24,72 +24,86 @@ from agno.models.groq import Groq
 Groq_API_KEY = "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"
 
 async def main():
-    # Instantiate the browser toolkit
+    # Instantiate the browser toolkit with automatic state checking
     browser_toolkit = BrowserTool(headless=False)
 
     try:
         agent = Agent(
-            model=Groq(id="deepseek-r1-distill-llama-70b", api_key=Groq_API_KEY, temperature=0.0),
+            model=Groq(id="meta-llama/llama-4-maverick-17b-128e-instruct", api_key=Groq_API_KEY, temperature=0.0),
             tools=[browser_toolkit],
-            # --- Restore Detailed Role ---
+            # --- Optimized Role ---
             role="""
             <instructions>
-            - You are a meticulous web automation assistant.
+            - You are a precise web automation assistant specialized in step-by-step browser tasks.
             - Your goal is to fulfill the user's request by interacting with web pages using the provided browser tools.
-            - Break down the user's request into smaller, sequential steps.
+            - Break down complex tasks into simple, sequential steps and execute them methodically.
+            - NEVER execute the same tool with the same parameters twice in a row.
             - **VERY IMPORTANT: Perform ONLY ONE browser action (tool call) per response turn.**
-            - For each step, decide which single browser tool is appropriate.
-            - **Crucially**: Before interacting with elements (clicking, typing), you MUST use 'get_current_state' in a *previous* turn to understand the page structure (URL, title, interactive elements with indices) and plan your *next single* action.
-            - Use 'get_text' or 'get_html' (as a single action) to extract information needed to answer the user or decide the next step.
-            - After performing an action (navigate, click, input_text, scroll, etc.), the tool will return the *new* state of the browser. Analyze this new state in your *next* turn before deciding the *next single* action.
-            - Think step-by-step about how to achieve the user's goal using the available tools, one step at a time.
+            - After each tool call, WAIT for the result before planning your next action.
+            - For search tasks:
+              1. First call `find_element_by_attribute(attribute="name", value="q")` to locate the search box
+              2. Then use `input_text` with the index returned to enter search terms
+              3. Next call `find_element_by_attribute(attribute="type", value="submit")` to find the submit button
+              4. Finally use `click_element` with that index to submit the search
+            - Always call `get_current_state()` after navigation or clicking to understand the new page layout.
+            - Use `get_text()` or `get_html()` when you need to extract information.
             </instructions>
 
             <available_tools>
             - navigate(url: str): Go to a URL. Returns the new browser state.
-            - get_current_state(): Get page URL, title, tabs, interactive element list with indices, and scroll position. Returns the current browser state as JSON.
+            - get_current_state(): Get page URL, title, tabs, interactive element list with indices, and scroll position. Returns state as JSON.
             - find_element_by_attribute(attribute: str, value: str): Returns highlight index of first element with attribute=value, or '-1'.
-            - click_element(index: int): Click an interactive element (link, button) by its index from get_current_state. Returns the new browser state.
-            - input_text(index: int, text: str): Type text into an input element by its index from get_current_state. Returns the new browser state.
-            - get_html(): Get the full HTML of the current page (may be truncated). Returns HTML string.
-            - get_text(): Get the visible text content of the current page. Returns text string.
-            - scroll_page(direction: str, amount_pixels: Optional[int]): Scroll ('up', 'down', 'top', 'bottom'). Returns the new browser state.
-            - switch_tab(tab_id: int): Switch to a tab by ID from get_current_state. Returns the new browser state.
-            - new_tab(url: Optional[str]): Open a new tab. Returns the new browser state.
-            - close_tab(): Close the current tab. Returns the new browser state (or confirmation if last tab).
-            - refresh_page(): Refresh the current page. Returns the new browser state.
-            - take_screenshot(full_page: bool = True): Capture a screenshot. Returns confirmation message.
-            - go_back(): Navigate back in history. Returns the new browser state.
-            - go_forward(): Navigate forward in history. Returns the new browser state.
+            - click_element(index: int): Click an interactive element by index. Returns confirmation.
+            - input_text(index: int, text: str): Type text into an element by index. Returns confirmation.
+            - get_html(): Get full HTML. Returns HTML string.
+            - get_text(): Get visible text content. Returns text string.
+            - scroll_page(direction: str, amount_pixels: Optional[int]): Scroll page. Returns confirmation.
+            - switch_tab(tab_id: int): Switch to tab by ID. Returns confirmation.
+            - new_tab(url: Optional[str]): Open tab. Returns confirmation.
+            - close_tab(): Close current tab. Returns confirmation.
+            - refresh_page(): Refresh page. Returns confirmation.
+            - take_screenshot(full_page: bool = True): Capture screenshot. Returns confirmation.
+            - go_back(): Navigate back. Returns confirmation.
+            - go_forward(): Navigate forward. Returns confirmation.
             </available_tools>
 
             <workflow_example>
-            1. **Turn 1:** User asks to search for 'X' on a site.
-            2. **Turn 1 Response:** Call `navigate` to go to the site's URL.
-            3. **Turn 2:** Analyze the state returned by `navigate`.
-            4. **Turn 2 Response:** Call `get_current_state` to confirm page load and find the search input index and search button index.
-            5. **Turn 3:** Analyze the state returned by `get_current_state`. Identify indices.
-            6. **Turn 3 Response:** Call `input_text` with the search input's index and 'X'.
-            7. **Turn 4:** Analyze the state returned by `input_text`.
-            8. **Turn 4 Response:** Call `click_element` with the search button's index.
-            9. **Turn 5:** Analyze the state returned by `click_element` (search results page).
-            10. **Turn 5 Response:** Call `get_text` or `get_html` to see the search results.
-            11. **Turn 6:** Analyze the text/HTML. Extract the required information.
-            12. **Turn 6 Response:** Provide the final answer to the user (no tool call).
+            **User task**: Search for "AI ethics" on Google Scholar and find the top paper.
+            
+            **Turn 1**: I'll help with this. I'll start by navigating to Google Scholar.
+            *Tool call*: navigate(url="https://scholar.google.com/")
+            
+            **Turn 2**: I'll now find the search box element.
+            *Tool call*: find_element_by_attribute(attribute="name", value="q")
+            
+            **Turn 3**: Found the search box at index 3. I'll now enter the search query.
+            *Tool call*: input_text(index=3, text="AI ethics")
+            
+            **Turn 4**: I'll find the search button to submit the query.
+            *Tool call*: find_element_by_attribute(attribute="type", value="submit") 
+            
+            **Turn 5**: Found the search button at index 4. I'll click it now.
+            *Tool call*: click_element(index=4)
+            
+            **Turn 6**: I'll get the search results text to identify the top paper.
+            *Tool call*: get_text()
+            
+            **Turn 7**: Based on the results, the top paper is "The Ethics of AI" by Smith et al. with 1,200 citations.
             </workflow_example>
 
             <output_format>
-            - Use markdown for your final response to the user.
-            - When making a tool call, explain your reasoning for this single step based on the state from the *previous* turn.
+            - Keep responses brief and focused on the current step.
+            - Describe what you observed before deciding on your next action.
+            - Do not need to repeat information that was already observed.
             </output_format>
             """,
-            # --- End Detailed Role ---
+            # --- End Optimized Role ---
             markdown=True,
             show_tool_calls=True,
             debug_mode=True,
         )
 
-        # --- Restore Original Task ---
+        # --- Task ---
         await agent.aprint_response("""
             1. Visit https://scholar.google.com/
             2. Search for "yann lecun" in the search bar.
@@ -98,7 +112,7 @@ async def main():
             5. Extract the names of the first 5 co-authors listed.
             6. Summarize the information found on the profile (e.g., affiliation, research areas if available).
             """, stream=True)
-        # --- End Original Task ---
+        # --- End Task ---
 
     except Exception as e:
         print(f"An error occurred: {e}")
