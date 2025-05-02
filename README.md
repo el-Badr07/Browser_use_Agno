@@ -1,6 +1,9 @@
-# Agno Framework
+# Agno Framework – Browser Tool Integration (PR)
 
 ## Introduction
+
+> 📌 **Note**: This repository is a pull request to add the `browser_use` tool for the [Agno framework](https://github.com/<original-agno-repo>).  
+> It demonstrates the integration of a browser automation tool that allows agents to interact with the web, perform searches, and extract live data.
 
 The Agno framework is a powerful tool for building intelligent agents. It provides a flexible and extensible architecture for integrating various tools and models to create sophisticated agents capable of performing complex tasks.
 
@@ -16,7 +19,7 @@ To install the Agno framework, use the following command:
 
 ```bash
 pip install agno
-```
+````
 
 ## Usage
 
@@ -45,11 +48,9 @@ if __name__ == "__main__":
 
 ### Adding Browser Use as a Tool
 
-The Agno framework now supports the addition of browser use as a tool. This allows agents to interact with web pages, perform searches, and extract information from the web.
+This PR introduces the `BrowserTool`, enabling agents to perform live web searches and interact with web content programmatically.
 
 #### Example
-
-Here's an example of how to use the browser tool in the Agno framework:
 
 ```python
 import asyncio
@@ -71,12 +72,11 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-In this example, the `BrowserTool` is added to the agent's tools, allowing it to perform web browsing tasks. The agent is instructed to search for the latest news on AI, and the response is printed to the console.
+In this example, the `BrowserTool` allows the agent to perform real-time web browsing and data extraction.
 
-## Contributing
-
-Contributions are welcome! Please read the [contributing guidelines](CONTRIBUTING.md) before submitting a pull request.
 
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+
