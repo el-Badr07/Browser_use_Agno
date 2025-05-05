@@ -22,7 +22,7 @@ from agno.tools.thinking import ThinkingTools
 #         "npx -y @openbnb/mcp-server-airbnb --ignore-robots-txt"
 #     ) as mcp_tools:
 #         agent = Agent(
-#             model=Groq( api_key="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"),
+#             model=Groq( api_key="api_key"),
 #             tools=[ThinkingTools(), mcp_tools],
 #             instructions=dedent("""\
 #             ## General Instructions
@@ -77,7 +77,7 @@ async def create_filesystem_agent(session):
 
     # Create an agent with the MCP toolkit and Groq's fast LLM
     return Agent(
-        model=Groq(id="llama-3.3-70b-versatile", api_key="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"),
+        model=Groq(id="llama-3.3-70b-versatile", api_key="api_key"),
         tools=[mcp_tools],
         role="You are a high-performance filesystem assistant powered by Groq and MCP.",
         # instructions=dedent("""\
@@ -103,8 +103,8 @@ async def create_web_agent(session):
 
     # Create an agent with the MCP toolkit and Groq's fast LLM
     return Agent(
-        model=Groq(id="llama-3.3-70b-versatile", api_key="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"),
-        model=Gemini(api_key="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"),
+        model=Groq(id="llama-3.3-70b-versatile", api_key="api_key"),
+        model=Gemini(api_key="api_key"),
         tools=[mcp_tools],
         role="Your task is to use your web browsing capabilities to find information and take actions on the web.",
         instructions=dedent("""\
