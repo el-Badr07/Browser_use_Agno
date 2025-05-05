@@ -10,7 +10,7 @@ from mcp import StdioServerParameters
 from textwrap import dedent
 
 
-Groq_API_KEY ="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"
+Groq_API_KEY ="api_key"
 
 async def run_agent(message: str) -> None:
     """Run the Playwright agent with the given message."""
