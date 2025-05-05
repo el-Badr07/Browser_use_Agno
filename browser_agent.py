@@ -21,7 +21,7 @@ from agno.models.groq import Groq
 # BROWSERBASE_BASE_URL: The Browserbase API endpoint
 #   - Optional: Defaults to https://api.browserbase.com if not specified
 #   - Only change this if you're using a custom API endpoint or proxy
-Groq_API_KEY = "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"
+Groq_API_KEY = "api_key"
 
 async def main():
     # Instantiate the browser toolkit with automatic state checking
